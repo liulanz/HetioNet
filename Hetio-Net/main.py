@@ -24,9 +24,9 @@ def main():
     print(MESSGAE)
 
     choice = input("Please enter your choice: ")
-    while(choice != "A" || choice != "B"){
+    while(choice != "A" and choice != "B"):
         choice = input("Invalid Choice. Please re-enter << ")
-    }
+    
 
 
     if choice == 'A':
