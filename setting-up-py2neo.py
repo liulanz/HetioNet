@@ -2,39 +2,28 @@ from py2neo import Graph, NodeMatcher
 from py2neo.data import Node, Relationship
 from py2neo.ogm import *
 import csv
+from tkinter import *
 
-MESSGAE = '''
-CHOICE A) Given a disease id, what is its name, what are drug names that can treat or 
-palliate this disease, what are gene names that cause this disease, and where 
-this disease occurs?
+MESSAGAE = '''
+====================================================================================================
+	CHOICE A) Given a disease id, what is its name, what are drug names that can treat or 
+	palliate this disease, what are gene names that cause this disease, and where 
+	this disease occurs?
 
-CHOICE B) We assume that a compound can treat a disease if the compound or its resembled compound 
-up-regulates/down- regulates a gene, but the location down-regulates/up-regulates the gene 
-in an opposite direction where the disease occurs. Find all compounds that can treat a new
-disease name (i.e. the missing edges between compound and disease excluding existing drugs).
+	CHOICE B) We assume that a compound can treat a disease if the compound or its resembled compound 
+	up-regulates/down- regulates a gene, but the location down-regulates/up-regulates the gene 
+	in an opposite direction where the disease occurs. Find all compounds that can treat a new
+	disease name (i.e. the missing edges between compound and disease excluding existing drugs).
 
-ENTER "A" for CHOICE A
-ENTER "B" for CHOICE B
+	ENTER "A" for CHOICE A
+	ENTER "B" for CHOICE B
+====================================================================================================
 '''
 
 graph = Graph("bolt://localhost:7687", auth=("neo4j", "password"))
 graph.delete_all()
 
 
-# def Neo4jConnectionSetup( ):
-#     uri = "bolt://localhost:7687"
-#     driver = GraphDatabase.driver(uri, auth=("neo4j", "your password"))
-
-# initiate nodes
-# Alex1 = Node ("Person", name = "Alex1")
-# Alex2 = Node ("Person", name = "Alex2")
-
-# # creating nodes in graph
-# graph.create(Alex1)
-# graph.create(Alex2)
-
-# # creating relationship
-# graph.create(Relationship(Alex1, "LOVES", Alex2))
 def getRelationship(letter):
     relationship = ""
     if letter =='b':
@@ -65,7 +54,7 @@ def getRelationship(letter):
 def readNodes():
     nodes_tsv_file = open("sample_nodes.tsv")
     nodes_read_tsv = csv.reader(nodes_tsv_file, delimiter = "\t")
-    next(nodes_read_tsv, None)
+    next(nodes_read_tsv, None) # skip first row
     for row in nodes_read_tsv:
         ID = row[0].split("::")[1]
         Name = row[1]
@@ -77,7 +66,7 @@ def readNodes():
 def readEdges():
     edges_tsv_file = open("sample_edges.tsv")
     edges_read_tsv = csv.reader(edges_tsv_file, delimiter = "\t")
-    next(edges_read_tsv, None)
+    next(edges_read_tsv, None) # skip first row
     for row in edges_read_tsv:
         type_ID = row[0].split("::")  # e.g ['Compound', 'DB00035']
         source_type = type_ID[0] # e.g Compound
@@ -116,12 +105,15 @@ def queryDisease(diseaseID):
 
     if not results:
         print("No record found")
+        return False
     else:
         for result in results:
             print(f"\t{result['d.name']}")
             print(f"\t{result['c.name']}")
             print(f"\t{result['g.name']}")
             print(f"\t{result['a.name']}")
+        return True
+
 
 # We assume that a compound can treat a disease 
 # if the compound or its resembled compound up-regulates/down-regulates a gene, 
@@ -162,7 +154,15 @@ def main():
     readNodes()
     readEdges()
 
-    print(MESSGAE)
+    # https://www.youtube.com/watch?v=_lSNIrR1nZU
+    # window = Tk()
+    # window.title("Hetio-Net by Yi Heng & Liulan ")
+    # window.configure(background="black")
+
+    # Label(window, text=MESSGAE, bg="black", fg="white", font="none 12 bold")
+
+    # textentry - Entry(window, width=20, bg="white")
+    print(MESSAGAE)
 
     choice = input("Please enter your choice: ")
     while(choice != "A" and choice != "B"):
@@ -170,12 +170,13 @@ def main():
 
 
     if choice == 'A':
-        query = input("Please enter a disease name: ")
-        queryDisease(query)
+        query = input("Please enter a disease ID: ")
+        while(not queryDisease(query)):
+        	query = input ("Invalid ID was entered. Please re-enter: ")
 
-    if choice == 'B':
-        query = input("Please enter a compound name: ")
-        queryCompound(query)
+    # if choice == 'B':
+    #     query = input("Please enter a compound name: ")
+    #     queryCompound(query)
 
 if __name__ == "__main__":
     main()
