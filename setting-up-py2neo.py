@@ -95,24 +95,40 @@ def readEdges():
 # and where this disease occurs? 
 # Obtain and output this information in a single query.
 def queryDisease(diseaseID):
-    query = f"""
+	global window
+	query1_message = Text(window, width=100, height=10, wrap=WORD, background="white")
+	query1_message.grid(row=16, column=0, columnspan=2, sticky=W)
+	query = f"""
         MATCH (c:Compound)-[:treats|palliates]->(d:Disease {{id: "{diseaseID}"}})
         OPTIONAL MATCH (g:Gene)-[:associates]->(d:Disease {{id: "{diseaseID}"}})
         OPTIONAL MATCH (d:Disease {{id: "{diseaseID}"}})-[:localizes]->(a:Anatomy)
         RETURN d.name, c.name, g.name, a.name
     """
-    results = graph.run(query).data()
-
-    if not results:
-        print("No record found")
-        return False
-    else:
-        for result in results:
-            print(f"\t{result['d.name']}")
-            print(f"\t{result['c.name']}")
-            print(f"\t{result['g.name']}")
-            print(f"\t{result['a.name']}")
-        return True
+	results = graph.run(query).data()
+	if not results:
+        #print("No record found")
+		query1_message.insert(END, "No record found. Please re-enter.")
+	else:
+		compound_name=""
+		gene_name=""
+		anatomy_name=""
+		for result in results:
+			compound_name = result['c.name']
+			gene_name = result['g.name']
+			anatomy_name = result['a.name']
+		query1_result = f"""
+			Disease ID: {diseaseID}
+    		Disease Name: {result['d.name']}
+    		Drugs that treat/palliates this disease: {compound_name}
+    		Genes that cause cause this disease: {gene_name}
+    		This disease occurs at: {anatomy_name}
+		"""
+	        # print(f"\t{result['d.name']}")
+	        # print(f"\t{result['c.name']}")
+	        # print(f"\t{result['g.name']}")
+	        # print(f"\t{result['a.name']}")
+		query1_message.insert(END, query1_result)
+  
 
 
 # We assume that a compound can treat a disease 
@@ -170,7 +186,7 @@ def choiceClick():
 		Label(window, text="Please enter a disease ID: ", bg="black", fg="white", font="none 12 bold") .grid(row=9,column=0, sticky=W)
 		textentry = Entry(window, width=20, bg="white")
 		textentry.grid(row=10,column=0,sticky=W)
-		Button(window, text="SUBMIT", width=6, command=query1) .grid(row=11, column=0, sticky=W)		
+		Button(window, text="SUBMIT", width=6, command=query1) .grid(row=12, column=0, sticky=W)		
 	else:
 		choice_message.insert(END, "Invalid choice. Please re-enter.")
 #     query = input("Please enter a disease ID: ")
@@ -208,13 +224,14 @@ Label(window, text=MESSAGAE, bg="black", fg="white", font="none 12 bold") .grid(
 Label(window, text="Please enter your choice: ", bg="black", fg="white", font="none 12 bold") .grid(row=2,column=0, sticky=W)
 textentry = Entry(window, width=20,bg="white")
 textentry.grid(row=4,column=0,sticky=W)
-Button(window, text="SUBMIT CHOICE", width=10, command=choiceClick) .grid(row=6, column=0, sticky=W)
+Button(window, text="SUBMIT CHOICE", width=12, command=choiceClick) .grid(row=6, column=0, sticky=W)
 choice_message = Text(window, width=40, height=1, wrap=WORD, background="white")
 choice_message.grid(row=7, column=0, columnspan=2, sticky=W)
 
+
 # Exit button
-Label(window, text="Click to exit: ", bg="black", fg="white", font="none 12 bold") .grid(row=11,column=0, sticky=E)
-Button(window, text="Exit", width=10, command=closeWindow) .grid(row=12, column=0, sticky=E)
+#Label(window, text="Click to exit: ", bg="black", fg="white", font="none 12 bold") .grid(row=40,column=0, sticky=E)
+Button(window, text="Exit", width=10, command=closeWindow) .grid(row=42, column=0, sticky=E)
 
 
 # choice = input("Please enter your choice: ")
