@@ -3,6 +3,8 @@ from py2neo.data import Node, Relationship
 from py2neo.ogm import *
 import csv
 from tkinter import *
+import matplotlib
+matplotlib.use('Agg')
 
 MESSAGAE = '''
 ====================================================================================================
@@ -20,8 +22,6 @@ MESSAGAE = '''
 ====================================================================================================
 '''
 
-graph = Graph("bolt://localhost:7687", auth=("neo4j", "password"))
-graph.delete_all()
 
 
 def getRelationship(letter):
@@ -150,33 +150,94 @@ def queryCompound(compound):
         for result in results:
             print(f"\t{result['c.name']}-{result['d.name']}")
 
-def main():
-    readNodes()
-    readEdges()
-
-    # https://www.youtube.com/watch?v=_lSNIrR1nZU
-    # window = Tk()
-    # window.title("Hetio-Net by Yi Heng & Liulan ")
-    # window.configure(background="black")
-
-    # Label(window, text=MESSGAE, bg="black", fg="white", font="none 12 bold")
-
-    # textentry - Entry(window, width=20, bg="white")
-    print(MESSAGAE)
-
-    choice = input("Please enter your choice: ")
-    while(choice != "A" and choice != "B"):
-        choice = input("Invalid Choice. Please re-enter << ")
+def query1():
+	global textentry
+	disease_id = textentry.get()
+	queryDisease(disease_id)
 
 
-    if choice == 'A':
-        query = input("Please enter a disease ID: ")
-        while(not queryDisease(query)):
-        	query = input ("Invalid ID was entered. Please re-enter: ")
+def choiceClick():
+	global textentry
+	global disease_id
+	global choice_message
+	choice = textentry.get() #this will collect the text from the text entry
+	choice_message.delete(0.0, END) # clear the text in textentry
+	# while(choice != "A" and choice != "B"):
+ #         choice = input("Invalid Choice. Please re-enter << ")
+	
+	if choice == 'A':
+		choice_message.insert(END, "CHOICE A was entered.")
+		Label(window, text="Please enter a disease ID: ", bg="black", fg="white", font="none 12 bold") .grid(row=9,column=0, sticky=W)
+		textentry = Entry(window, width=20, bg="white")
+		textentry.grid(row=10,column=0,sticky=W)
+		Button(window, text="SUBMIT", width=6, command=query1) .grid(row=11, column=0, sticky=W)		
+	else:
+		choice_message.insert(END, "Invalid choice. Please re-enter.")
+#     query = input("Please enter a disease ID: ")
+#     while(not queryDisease(query)):
+#     	query = input ("Invalid ID was entered. Please re-enter: ")
+ 	
 
-    # if choice == 'B':
-    #     query = input("Please enter a compound name: ")
-    #     queryCompound(query)
+# close the window
+def closeWindow():
+	window.destroy()
+	exit()
 
-if __name__ == "__main__":
-    main()
+#################################################################################################
+graph = Graph("bolt://localhost:7687", auth=("neo4j", "password"))
+graph.delete_all()
+
+window = Tk()
+window.title("Hetio-Net by Yi Heng & Liulan ")
+window.configure(background="black")
+
+
+readNodes()
+readEdges()
+
+
+#https://www.youtube.com/watch?v=_lSNIrR1nZU
+
+
+	#adding image
+#photo1 = PhtoImage(file=" ")
+Label(window, text=MESSAGAE, bg="black", fg="white", font="none 12 bold") .grid(row=0,column=0, sticky=W)
+
+
+# Enter choice 
+Label(window, text="Please enter your choice: ", bg="black", fg="white", font="none 12 bold") .grid(row=2,column=0, sticky=W)
+textentry = Entry(window, width=20,bg="white")
+textentry.grid(row=4,column=0,sticky=W)
+Button(window, text="SUBMIT CHOICE", width=10, command=choiceClick) .grid(row=6, column=0, sticky=W)
+choice_message = Text(window, width=40, height=1, wrap=WORD, background="white")
+choice_message.grid(row=7, column=0, columnspan=2, sticky=W)
+
+# Exit button
+Label(window, text="Click to exit: ", bg="black", fg="white", font="none 12 bold") .grid(row=11,column=0, sticky=E)
+Button(window, text="Exit", width=10, command=closeWindow) .grid(row=12, column=0, sticky=E)
+
+
+# choice = input("Please enter your choice: ")
+# while(choice != "A" and choice != "B"):
+#     choice = input("Invalid Choice. Please re-enter << ")
+
+
+# if choice == 'A':
+#     query = input("Please enter a disease ID: ")
+#     while(not queryDisease(query)):
+#     	query = input ("Invalid ID was entered. Please re-enter: ")
+
+# if choice == 'B':
+#     query = input("Please enter a compound name: ")
+#     queryCompound(query)
+window.mainloop()
+
+# if __name__ == "__main__":
+#     main()
+
+
+# sudo systemctl status neo4j.service
+# sudo service neo4j start
+
+# DISPLAY=:0 python3 setting-up-py2neo.py
+#xming
