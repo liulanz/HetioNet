@@ -1,0 +1,8 @@
+source	metaedge	target
+Disease::DOID:0050156	DdG	Gene::1
+Compound::DB00035	CbG	Gene::1
+Compound::DB00035	CrC	Compound::DB00014
+Compound::DB00014	CtD	Disease::DOID:0050156
+Compound::DB00014	CuG	Gene::1
+Disease::DOID:0050156	DlA	Anatomy::UBERON:0000002
+Anatomy::UBERON:0000002	AdG	Gene::1

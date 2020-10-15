@@ -1,0 +1,6 @@
+id	name	kind
+Anatomy::UBERON:0000002	uterine cervix	Anatomy
+Disease::DOID:0050156	idiopathic pulmonary fibrosis	Disease
+Gene::1	A1BG	Gene
+Compound::DB00014	Goserelin	Compound
+Compound::DB00035	Desmopressin	Compound
