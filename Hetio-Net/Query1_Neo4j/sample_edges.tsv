@@ -6,3 +6,4 @@ Compound::DB00014	CtD	Disease::DOID:0050156
 Compound::DB00014	CuG	Gene::1
 Disease::DOID:0050156	DlA	Anatomy::UBERON:0000002
 Anatomy::UBERON:0000002	AdG	Gene::1
+Compound::T1	CtD	Disease::DOID:0050156
