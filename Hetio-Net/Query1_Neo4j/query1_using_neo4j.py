@@ -108,7 +108,7 @@ def queryDisease(diseaseID):
 	query1_message.grid(row=16, column=0, columnspan=2, sticky=W)
 	query = f"""
         MATCH (c:Compound)-[:treats|palliates]->(d:Disease {{id: "{diseaseID}"}})
-        OPTIONAL MATCH (g:Gene)-[:associates]->(d:Disease {{id: "{diseaseID}"}})
+        OPTIONAL MATCH (g:Gene)-[:associates|upregulates|downregulates]-(d:Disease {{id: "{diseaseID}"}})
         OPTIONAL MATCH (d:Disease {{id: "{diseaseID}"}})-[:localizes]->(a:Anatomy)
         RETURN d.name, c.name, g.name, a.name
     """
@@ -272,7 +272,7 @@ graph = Graph("bolt://localhost:7687", auth=("neo4j", "password"))
 graph.delete_all()
 
 window = Tk()
-window.title("Big Data Technology Project I by Yi Heng & Liulan ")
+window.title("Big Data Technology Project I by Yiheng & Liulan ")
 window.configure(background="#856ff8")
 
 
