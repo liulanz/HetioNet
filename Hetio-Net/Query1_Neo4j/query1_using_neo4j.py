@@ -108,7 +108,7 @@ def queryDisease(diseaseID):
 	query1_message.grid(row=16, column=0, columnspan=2, sticky=W)
 	query = f"""
         MATCH (c:Compound)-[:treats|palliates]->(d:Disease {{id: "{diseaseID}"}})
-        OPTIONAL MATCH (g:Gene)-[:associates|upregulates|downregulates]-(d:Disease {{id: "{diseaseID}"}})
+        OPTIONAL MATCH (d:Disease {{id: "{diseaseID}"}})-[:associates|upregulates|downregulates]->(g:Gene)
         OPTIONAL MATCH (d:Disease {{id: "{diseaseID}"}})-[:localizes]->(a:Anatomy)
         RETURN d.name, c.name, g.name, a.name
     """
@@ -142,8 +142,7 @@ def queryDisease(diseaseID):
 				G.add_edge((str)(compound_name),disease)
 		if(len(gene_names)!=0):
 			for gene_name in gene_names:
-				G.add_edge((str)(gene_name), disease)
-				
+				G.add_edge(disease, (str)(gene_name))
 		if(len(anatomy_names)!=0):
 			for anatomy_name in anatomy_names:
 				G.add_edge(disease, (str)(anatomy_name))
@@ -160,7 +159,7 @@ def queryDisease(diseaseID):
 				nx.draw_networkx_edge_labels(G,pos,edge_labels={((str)(compound_name), disease):'treats/paliates'},font_color='red')
 		if(len(gene_names)!=0):
 			for gene_name in gene_names:
-				nx.draw_networkx_edge_labels(G,pos,edge_labels={((str)(gene_name),disease):'associates'},font_color='red')
+				nx.draw_networkx_edge_labels(G,pos,edge_labels={(disease, (str)(gene_name)):'associates'},font_color='red')
 		if(len(anatomy_names)!=0):
 			for anatomy_name in anatomy_names:
 				nx.draw_networkx_edge_labels(G,pos,edge_labels={(disease,(str)(anatomy_name)):'localizes'},font_color='red')
