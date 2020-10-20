@@ -1,12 +1,12 @@
 from py2neo import Graph, NodeMatcher
 from py2neo.data import Node, Relationship
 from py2neo.ogm import *
-import csv
-# from tkinter import *
-# import networkx as nx
-# import matplotlib.pyplot as plt
-import pymongo
 from pymongo import MongoClient
+import csv
+from tkinter import *
+import networkx as nx
+import matplotlib.pyplot as plt
+G = nx.DiGraph()
 
 
 MESSAGAE = '''
@@ -117,10 +117,13 @@ def readEdges():
         graph.run(query)
 
         # store into mongodb
+        source = collection.find_one({'_id':source_ID})
+        target = collection.find_one({'_id':target_ID})
+
         source_relationship = relationship+"->"
-        collection.update_one({'_id':source_ID},{'$push':{source_relationship:target_ID}})
+        collection.update_one({'_id':source_ID},{'$push':{source_relationship:target['name']}})
         target_relationship = "->"+relationship
-        collection.update_one({'_id':target_ID},{'$push':{target_relationship:source_ID}})
+        collection.update_one({'_id':target_ID},{'$push':{target_relationship:source['name']}})
 
     edges_tsv_file.close()
 
@@ -135,7 +138,35 @@ def readEdges():
 # what are gene names that cause this disease, 
 # and where this disease occurs? 
 # Obtain and output this information in a single query.
-# def queryDisease(diseaseID):
+def queryDisease(diseaseID):
+
+    results = collection.find({'_id': diseaseID}, {'->treats': 1, '->palliates': 1, 'associates->': 1, 'downregulates->': 1, 'upregulates->': 1, 'localizes->': 1})
+    
+    if not results:
+        query1_message.insert(END, "No record found. Please re-enter.")
+    else:
+        for i in results:
+            res = i
+
+    if '->treats' in res:
+        treats = res['->treats']
+
+    if '->palliates' in res:
+        palliates = res['->palliates']
+
+    if 'associates->' in res:
+        associates = res['associates->']
+       
+    if 'downregulates->' in res:
+        downregulates = res['downregulates->']
+
+    if 'upregulates->' in res:
+        upregulates = res['upregulates->']
+
+    if 'localizes->' in res:
+        localizes = res['localizes->']
+
+
 # 	global window
 # 	query1_message = Text(window, width=100, height=2, wrap=WORD, background="white")
 # 	query1_message.grid(row=16, column=0, columnspan=2, sticky=W)
@@ -249,10 +280,10 @@ def queryCompound(compound):
 ######################################################################
 ##################### functions for GUI part #########################
 ######################################################################
-# def query1():
-	# global textentry
-	# disease_id = textentry.get()
-	# queryDisease(disease_id)
+def query1():
+	global textentry
+	disease_id = textentry.get()
+	queryDisease(disease_id)
 
 
 def choiceClick():
@@ -326,6 +357,7 @@ while(choice != "A" and choice != "B"):
 
 if choice == 'A':
     query = input("Please enter a disease ID: ")
+    queryDisease(query)
   #  while(not queryDisease(query)):
  #   	query = input ("Invalid ID was entered. Please re-enter: ")
 
