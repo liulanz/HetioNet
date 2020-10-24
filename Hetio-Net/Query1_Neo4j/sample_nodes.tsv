@@ -5,3 +5,4 @@ Gene::1	A1BG	Gene
 Compound::DB00014	Goserelin	Compound
 Compound::DB00035	Desmopressin	Compound
 Compound::T1	TestingCompound1	Compound
+Compound::T2	TestingCompound2	Compound

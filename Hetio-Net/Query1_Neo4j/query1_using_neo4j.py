@@ -9,17 +9,17 @@ G = nx.DiGraph()
 
 MESSAGAE = '''
 ====================================================================================================
-	CHOICE A) Given a disease id, what is its name, what are drug names that can treat or 
-	palliate this disease, what are gene names that cause this disease, and where 
-	this disease occurs?
+    CHOICE A) Given a disease id, what is its name, what are drug names that can treat or 
+    palliate this disease, what are gene names that cause this disease, and where 
+    this disease occurs?
 
-	CHOICE B) We assume that a compound can treat a disease if the compound or its resembled compound 
-	up-regulates/down- regulates a gene, but the location down-regulates/up-regulates the gene 
-	in an opposite direction where the disease occurs. Find all compounds that can treat a new
-	disease name (i.e. the missing edges between compound and disease excluding existing drugs).
+    CHOICE B) We assume that a compound can treat a disease if the compound or its resembled compound 
+    up-regulates/down- regulates a gene, but the location down-regulates/up-regulates the gene 
+    in an opposite direction where the disease occurs. Find all compounds that can treat a new
+    disease name (i.e. the missing edges between compound and disease excluding existing drugs).
 
-	ENTER "A" for CHOICE A
-	ENTER "B" for CHOICE B
+    ENTER "A" for CHOICE A
+    ENTER "B" for CHOICE B
 ====================================================================================================
 '''
 
@@ -103,92 +103,102 @@ def readEdges():
 # and where this disease occurs? 
 # Obtain and output this information in a single query.
 def queryDisease(diseaseID):
-	global window
-	query1_message = Text(window, width=100, height=2, wrap=WORD, background="white")
-	query1_message.grid(row=16, column=0, columnspan=2, sticky=W)
-	query = f"""
+    global window
+    query1_message = Text(window, width=100, height=10, wrap=WORD, background="white")
+    query1_message.grid(row=16, column=0, columnspan=2, sticky=W)
+    query = f"""
         MATCH (c:Compound)-[:treats|palliates]->(d:Disease {{id: "{diseaseID}"}})
         OPTIONAL MATCH (d:Disease {{id: "{diseaseID}"}})-[:associates|upregulates|downregulates]->(g:Gene)
         OPTIONAL MATCH (d:Disease {{id: "{diseaseID}"}})-[:localizes]->(a:Anatomy)
         RETURN d.name, c.name, g.name, a.name
     """
-	results = graph.run(query).data()
-	if not results:
+    results = graph.run(query).data()
+    if not results:
         #print("No record found")
-		query1_message.insert(END, "No record found. Please re-enter.")
-	else:
-		compound_names=[]
-		gene_names=[]
-		anatomy_names=[]
-		for result in results:
-			# avoid adding "None" node to the graph
-			if(str(result['c.name'])!="None"):
-				compound_names.append(result['c.name'])
-			if(str(result['g.name'])!="None"):
-				gene_names.append(result['g.name'])
-			if(str(result['a.name'])!="None"):
-				anatomy_names.append(result['a.name'])
-			
+        query1_message.insert(END, "No record found. Please re-enter.")
+    else:
+        compound_names=set()
+        gene_names=set()
+        anatomy_names=set()
 
-		
-		disease = str(result['d.name'] +"\n"+diseaseID )
-		######################################################################
-		#### Creating a graph as an output using networkx and matplotlib #####
-		######################################################################
+        for result in results:
+            # avoid adding "None" node to the graph
+            if(str(result['c.name'])!="None"):
+                compound_names.add(result['c.name'])
+            if(str(result['g.name'])!="None"):
+                gene_names.add(result['g.name'])
+            if(str(result['a.name'])!="None"):
+                anatomy_names.add(result['a.name'])
 
-		# avoid adding "None" node to the graph
-		if(len(compound_names)!=0):
-			for compound_name in compound_names:
-				G.add_edge((str)(compound_name),disease)
-		if(len(gene_names)!=0):
-			for gene_name in gene_names:
-				G.add_edge(disease, (str)(gene_name))
-		if(len(anatomy_names)!=0):
-			for anatomy_name in anatomy_names:
-				G.add_edge(disease, (str)(anatomy_name))
+        query1_result = f"""
+            Disease ID: {diseaseID}
+            Disease Name: {result['d.name']}
+            Drugs that treat/palliates this disease: {compound_names}
+            Genes that cause cause this disease: {gene_names}
+            This disease occurs at: {anatomy_names}
+        """
+        
+        query1_message.insert(END, query1_result)
+        
+        
+        disease = str(result['d.name'] +"\n"+diseaseID )
+        ######################################################################
+        #### Creating a graph as an output using networkx and matplotlib #####
+        ######################################################################
 
-		pos = nx.spring_layout(G)
+        # avoid adding "None" node to the graph
+        if(len(compound_names)!=0):
+            for compound_name in compound_names:
+                G.add_edge((str)(compound_name),disease)
+        if(len(gene_names)!=0):
+            for gene_name in gene_names:
+                G.add_edge(disease, (str)(gene_name))
+        if(len(anatomy_names)!=0):
+            for anatomy_name in anatomy_names:
+                G.add_edge(disease, (str)(anatomy_name))
 
-		# drawing edges and nodes
-		nx.draw(G,pos,edge_color='red',width=1,linewidths=1, node_size=2000,node_color='#9999FF',alpha=0.8,arrowsize=20, arrows= True,labels={node:node for node in G.nodes()  })
-		
+        pos = nx.spring_layout(G)
 
-		# adding edge label to each edge
-		if(len(compound_names)!=0):
-			for compound_name in compound_names:
-				nx.draw_networkx_edge_labels(G,pos,edge_labels={((str)(compound_name), disease):'treats/paliates'},font_color='red')
-		if(len(gene_names)!=0):
-			for gene_name in gene_names:
-				nx.draw_networkx_edge_labels(G,pos,edge_labels={(disease, (str)(gene_name)):'associates'},font_color='red')
-		if(len(anatomy_names)!=0):
-			for anatomy_name in anatomy_names:
-				nx.draw_networkx_edge_labels(G,pos,edge_labels={(disease,(str)(anatomy_name)):'localizes'},font_color='red')
-		
-		
+        # drawing edges and nodes
+        nx.draw(G,pos,edge_color='red',width=1,linewidths=1, node_size=2000,node_color='#9999FF',alpha=0.8,arrowsize=20, arrows= True,labels={node:node for node in G.nodes()  })
+        
 
-		
-		# if(compound_name!="None"):
-		# 	nx.draw_networkx_edge_labels(G,pos,edge_labels={(compound_name, result['d.name']+ "\n"+diseaseID):'treats/paliates'},font_color='red')
-		# if(gene_name!="None"):
-		# 	nx.draw_networkx_edge_labels(G,pos,edge_labels={(gene_name,result['d.name']+"\n"+diseaseID):'associates'},font_color='red')
-		# if(anatomy_name!="None"):
-		# 	nx.draw_networkx_edge_labels(G,pos,edge_labels={(result['d.name']+"\n"+diseaseID,anatomy_name):'localizes'},font_color='red')
-		plt.show()
+        # adding edge label to each edge
+        if(len(compound_names)!=0):
+            for compound_name in compound_names:
+                nx.draw_networkx_edge_labels(G,pos,edge_labels={((str)(compound_name), disease):'treats/paliates'},font_color='red')
+        if(len(gene_names)!=0):
+            for gene_name in gene_names:
+                nx.draw_networkx_edge_labels(G,pos,edge_labels={(disease, (str)(gene_name)):'associates/downregulates/upregulates'},font_color='red')
+        if(len(anatomy_names)!=0):
+            for anatomy_name in anatomy_names:
+                nx.draw_networkx_edge_labels(G,pos,edge_labels={(disease,(str)(anatomy_name)):'localizes'},font_color='red')
+        
+        
+
+        
+        # if(compound_name!="None"):
+        #   nx.draw_networkx_edge_labels(G,pos,edge_labels={(compound_name, result['d.name']+ "\n"+diseaseID):'treats/paliates'},font_color='red')
+        # if(gene_name!="None"):
+        #   nx.draw_networkx_edge_labels(G,pos,edge_labels={(gene_name,result['d.name']+"\n"+diseaseID):'associates'},font_color='red')
+        # if(anatomy_name!="None"):
+        #   nx.draw_networkx_edge_labels(G,pos,edge_labels={(result['d.name']+"\n"+diseaseID,anatomy_name):'localizes'},font_color='red')
+        # plt.show()
 
 
 
-		# query1_result = f"""
-		# 	Disease ID: {diseaseID}
-  #   		Disease Name: {result['d.name']}
-  #   		Drugs that treat/palliates this disease: {compound_name}
-  #   		Genes that cause cause this disease: {gene_name}
-  #   		This disease occurs at: {anatomy_name}
-		# """
-	 #        # print(f"\t{result['d.name']}")
-	 #        # print(f"\t{result['c.name']}")
-	 #        # print(f"\t{result['g.name']}")
-	 #        # print(f"\t{result['a.name']}")
-		# query1_message.insert(END, query1_result)
+        # query1_result = f"""
+        #   Disease ID: {diseaseID}
+  #         Disease Name: {result['d.name']}
+  #         Drugs that treat/palliates this disease: {compound_name}
+  #         Genes that cause cause this disease: {gene_name}
+  #         This disease occurs at: {anatomy_name}
+        # """
+     #        # print(f"\t{result['d.name']}")
+     #        # print(f"\t{result['c.name']}")
+     #        # print(f"\t{result['g.name']}")
+     #        # print(f"\t{result['a.name']}")
+        # query1_message.insert(END, query1_result)
   
 
 
@@ -200,25 +210,13 @@ def queryDisease(diseaseID):
 # Obtain and output all drugs in a single query.
 def queryCompound(compound):
     query = f"""
-        MATCH (c:Compound {{name: "{compound}"}})-[:upregulates]->(:Gene)<-[:downregulates]-(d:Disease)
-        WHERE NOT (c)-[:treats]->(d)
-        OPTIONAL MATCH (c:Compound {{name: "{compound}"}})-[:downregulates]->(:Gene)<-[:upregulates]-(d:Disease)
-        WHERE NOT (c)-[:treats]->(d)
+        MATCH (c)-[:upregulates]->(:Gene)<-[:downregulates]-(d:Disease)
+        WHERE (c.name =  "{compound}" OR ((c)-[:resembles]->(:Compound {{name: "{compound}"}}))) AND NOT (c)-[:treats]->(d)
+        OPTIONAL MATCH (c)-[:downregulates]->(:Gene)<-[:upregulates]-(d:Disease)
+  		WHERE (c.name =  "{compound}" OR ((c)-[:resembles]->(:Compound {{name: "{compound}"}}))) AND NOT (c)-[:treats]->(d)
         RETURN DISTINCT c.name, d.name
     """
-
-    # Optional node query
-    # query = f"""
-    #     MATCH (c)-[:upregulates]->(d:Gene)
-    #     WHERE c:Compound OR c:Disease
-    #     RETURN c.name, d.name
-    # """
-
-    # Find resemble compound
-    # query = f"""
-    #      MATCH (c:Compound {{name: "{compound}"}})-[:resembles]-(d:Compound)
-    #      RETURN DISTINCT c.name, d.name
-    # """
+ 
     results = graph.run(query).data()
     if not results:
         print("No results found")
@@ -230,38 +228,42 @@ def queryCompound(compound):
 ######################################################################
 ##################### functions for GUI part #########################
 ######################################################################
+def showGraph():
+    plt.show()
+
 def query1():
-	global textentry
-	disease_id = textentry.get()
-	queryDisease(disease_id)
+    global textentry
+    disease_id = textentry.get()
+    queryDisease(disease_id)
+    Button(window, text="VIEW GRAPH", width=10, command=showGraph) .grid(row=13, column=0, sticky=W)
 
 
 def choiceClick():
-	global textentry
-	global disease_id
-	global choice_message
-	choice = textentry.get() #this will collect the text from the text entry
-	choice_message.delete(0.0, END) # clear the text in textentry
-	# while(choice != "A" and choice != "B"):
+    global textentry
+    global disease_id
+    global choice_message
+    choice = textentry.get() #this will collect the text from the text entry
+    choice_message.delete(0.0, END) # clear the text in textentry
+    # while(choice != "A" and choice != "B"):
  #         choice = input("Invalid Choice. Please re-enter << ")
-	
-	if choice == 'A':
-		choice_message.insert(END, "CHOICE A was entered.")
-		Label(window, text="Please enter a disease ID: ", bg="#856ff8", fg="white", font="none 12 bold") .grid(row=9,column=0, sticky=W)
-		textentry = Entry(window, width=20, bg="white")
-		textentry.grid(row=10,column=0,sticky=W)
-		Button(window, text="SUBMIT", width=6, command=query1) .grid(row=12, column=0, sticky=W)		
-	else:
-		choice_message.insert(END, "Invalid choice. Please re-enter.")
-#     query = input("Please enter a disease ID: ")
-#     while(not queryDisease(query)):
-#     	query = input ("Invalid ID was entered. Please re-enter: ")
- 	
+    
+    if choice == 'A':
+        choice_message.insert(END, "CHOICE A was entered.")
+        Label(window, text="Please enter a disease ID: ", bg="#856ff8", fg="white", font="none 12 bold") .grid(row=9,column=0, sticky=W)
+        textentry = Entry(window, width=20, bg="white")
+        textentry.grid(row=10,column=0,sticky=W)
+        Button(window, text="SUBMIT", width=6, command=query1) .grid(row=12, column=0, sticky=W)        
+    else:
+        choice_message.insert(END, "Invalid choice. Please re-enter.")
+    # query = input("Please enter a disease ID: ")
+    # while(not queryDisease(query)):
+    #   query = input ("Invalid ID was entered. Please re-enter: ")
+    
 
 # close the window
 def closeWindow():
-	window.destroy()
-	exit()
+    window.destroy()
+    exit()
 
 ######################################################################
 ##################### Creating GUI using tkinter######################
@@ -309,7 +311,7 @@ window.mainloop()
 # if choice == 'A':
 #     query = input("Please enter a disease ID: ")
 #     while(not queryDisease(query)):
-#     	query = input ("Invalid ID was entered. Please re-enter: ")
+#       query = input ("Invalid ID was entered. Please re-enter: ")
 
 # if choice == 'B':
 #     query = input("Please enter a compound name: ")
