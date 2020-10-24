@@ -209,6 +209,10 @@ def queryDisease(diseaseID):
 # (i.e. the missing edges between compound and disease excluding existing drugs). 
 # Obtain and output all drugs in a single query.
 def queryCompound(compound):
+    global window
+    query2_message = Text(window, width=100, height=10, wrap=WORD, background="white")
+    query2_message.grid(row=16, column=0, columnspan=2, sticky=W)
+    
     query = f"""
         MATCH (c)-[:upregulates]->(:Gene)<-[:downregulates]-(d:Disease)
         WHERE (c.name =  "{compound}" OR ((c)-[:resembles]->(:Compound {{name: "{compound}"}}))) AND NOT (c)-[:treats]->(d)
@@ -216,14 +220,33 @@ def queryCompound(compound):
   		WHERE (c.name =  "{compound}" OR ((c)-[:resembles]->(:Compound {{name: "{compound}"}}))) AND NOT (c)-[:treats]->(d)
         RETURN DISTINCT c.name, d.name
     """
- 
+
     results = graph.run(query).data()
     if not results:
-        print("No results found")
+        # print("No results found")
+        query2_message.insert(END, "No record found. Please re-enter.")
     else:
-        print("Compound-Disease pairs:")
+        # print("Compound-Disease pairs:")
+        # for result in results:
+        #     print(f"\t{result['c.name']}-{result['d.name']}")
+
+        compound_disease_pairs=[]
+        compound_names=[]
+        disease_names=[]
+
         for result in results:
-            print(f"\t{result['c.name']}-{result['d.name']}")
+            # avoid adding "None" node to the graph
+            if(str(result['c.name'])!="None"):
+                compound_disease_pairs.append(result['c.name'] + ' - ' + result['d.name'])
+                compound_names.append(result['c.name'])
+            if(str(result['d.name'])!="None"):
+                disease_names.append(result['d.name'])
+
+         
+        query2_message.insert(END, 'Compound-Disease pairs:' + '\n') 
+        for pair in compound_disease_pairs:
+            query2_message.insert(END, pair + '\n') 
+
 
 ######################################################################
 ##################### functions for GUI part #########################
@@ -237,6 +260,11 @@ def query1():
     queryDisease(disease_id)
     Button(window, text="VIEW GRAPH", width=10, command=showGraph) .grid(row=13, column=0, sticky=W)
 
+def query2():
+    global textentry
+    compound_name = textentry.get()
+    queryCompound(compound_name)
+    Button(window, text="VIEW GRAPH", width=10, command=showGraph) .grid(row=13, column=0, sticky=W)
 
 def choiceClick():
     global textentry
@@ -254,7 +282,11 @@ def choiceClick():
         textentry.grid(row=10,column=0,sticky=W)
         Button(window, text="SUBMIT", width=6, command=query1) .grid(row=12, column=0, sticky=W)        
     else:
-        choice_message.insert(END, "Invalid choice. Please re-enter.")
+        choice_message.insert(END, "CHOICE B was entered.")
+        Label(window, text="Please enter a compound name: ", bg="#856ff8", fg="white", font="none 12 bold") .grid(row=9,column=0, sticky=W)
+        textentry = Entry(window, width=20, bg="white")
+        textentry.grid(row=10,column=0,sticky=W)
+        Button(window, text="SUBMIT", width=6, command=query2) .grid(row=12, column=0, sticky=W)   
     # query = input("Please enter a disease ID: ")
     # while(not queryDisease(query)):
     #   query = input ("Invalid ID was entered. Please re-enter: ")
