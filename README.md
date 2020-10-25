@@ -1,10 +1,11 @@
 # HetioNet
 
 CSCI 49376: Big Data Technology
+
 authors: Liulan Zheng, Yiheng Cen Feng
 
-### Overview
----
+## Overview
+
 
 This project stores all the nodes from nodes.tsv and stores all the relationships from edges.tsv.
 We use MongoDB and Neo4j as our databases. 
@@ -21,8 +22,8 @@ down-regulates/up-regulates the gene in an opposite direction where the disease 
 (i.e. the missing edges between drug and disease). Obtain and output the drug-disease pairs in a single query.
 
 
-### Run
----
+## Run
+
 
 - Install Neo4j Desktop
 - Set up Mongodb cluster, add link and password in python code
