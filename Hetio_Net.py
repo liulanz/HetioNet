@@ -30,18 +30,21 @@ MESSAGAE = '''
 
 # neo4j database connection
 graph = Graph("bolt://localhost:7687", auth=("neo4j", "password"))
-graph.delete_all()
+# graph.delete_all()    # delete existing data 
 
 # set up graph for output using networkx
-# G = nx.DiGraph()
+G = nx.DiGraph()
 
 # Mongodb connection to cluster
 cluster = MongoClient("mongodb+srv://mongodb:mongodb@cluster0.vnvto.mongodb.net/<dbname>?retryWrites=true&w=majority")
-db = cluster["HetioNet"]
-collection = db["HetioNet"]
-collection.delete_many({})
+db1 = cluster["HetioNet"]
+collection1 = db1["HetioNet"]
+# collection1.delete_many({})    # delete existing data 
 
-G = nx.DiGraph()
+db = cluster["HetioNet-longdata"]
+collection = db["HetioNet-longdata"]
+# collection.delete_many({})     # delete existing data 
+
 
 ######################################################################
 ####### Breaking down tsv file and store into Neo4j Database #########
@@ -80,7 +83,8 @@ def getRelationship(letter):
 
 def readNodes():
     global collection
-    nodes_tsv_file = open("sample_nodes.tsv")
+    # nodes_tsv_file = open("sample_nodes.tsv")
+    nodes_tsv_file = open("nodes.tsv")
     nodes_read_tsv = csv.reader(nodes_tsv_file, delimiter = "\t")
     next(nodes_read_tsv, None) # skip first row
     for row in nodes_read_tsv:
@@ -101,7 +105,8 @@ def readNodes():
 ######################################################################
 
 def readEdges():
-    edges_tsv_file = open("sample_edges.tsv")
+#    edges_tsv_file = open("sample_edges.tsv")
+    edges_tsv_file = open("edges.tsv")
     edges_read_tsv = csv.reader(edges_tsv_file, delimiter = "\t")
     next(edges_read_tsv, None) # skip first row
     for row in edges_read_tsv:
@@ -400,25 +405,25 @@ def query2():
     Button(window, text="VIEW GRAPH", width=10, command=showGraph) .grid(row=13, column=0, sticky=W)
 
 def choiceClick():
-    global textentry
+    global choice_entered
     global disease_id
     global choice_message
-    choice = textentry.get() #this will collect the text from the text entry
+    choice = choice_entered.get() #this will collect the text from the text entry
     choice_message.delete(0.0, END) # clear the text in textentry
 
     if choice == 'A':
         choice_message.insert(END, "CHOICE A was entered.")
-        Label(window, text="Please enter a disease ID: ", bg="#856ff8", fg="white", font="none 12 bold") .grid(row=9,column=0, sticky=W)
+        Label(window, text="Please enter a disease ID: ", bg="#856ff8", fg="white", width=30,font="none 12 bold") .grid(row=9,column=0, sticky=W)
         textentry = Entry(window, width=20, bg="white")
         textentry.grid(row=10,column=0,sticky=W)
         Button(window, text="SUBMIT", width=6, command=query1) .grid(row=12, column=0, sticky=W)    
     elif choice == 'B':    
         choice_message.insert(END, "CHOICE B was entered.")
-        Label(window, text="Please enter a compound name: ", bg="#856ff8", fg="white", font="none 12 bold") .grid(row=9,column=0, sticky=W)
-        query2()
-        # textentry = Entry(window, width=20, bg="white")
-        # textentry.grid(row=10,column=0,sticky=W)
-        # Button(window, text="SUBMIT", width=6, command=query2) .grid(row=12, column=0, sticky=W)   
+        Label(window, text="Please enter a compound name: ", bg="#856ff8", fg="white", width=30, font="none 12 bold") .grid(row=9,column=0, sticky=W)
+       
+        textentry = Entry(window, width=20, bg="white")
+        textentry.grid(row=10,column=0,sticky=W)
+        Button(window, text="SUBMIT", width=6, command=query2) .grid(row=12, column=0, sticky=W)   
     else:
         choice_message.insert(END, "Invalid choice. The choice is either 'A' or 'B'. Please re-enter.")
     
@@ -437,8 +442,8 @@ window.title("Big Data Technology Project I by Yiheng & Liulan ")
 window.configure(background="#856ff8")
 
 
-readNodes()
-readEdges()
+#readNodes()
+#readEdges()
 
 
 #https://www.youtube.com/watch?v=_lSNIrR1nZU
@@ -447,8 +452,8 @@ readEdges()
 Label(window, text=MESSAGAE, bg="#856ff8",fg="white", font="none 12 bold") .grid(row=0,column=0, sticky=W)
 # Enter choice eiher 'A' or 'B'
 Label(window, text="Please enter your choice: ", bg="#856ff8", fg="white", font="none 12 bold") .grid(row=2,column=0, sticky=W)
-textentry = Entry(window, width=20,bg="white")
-textentry.grid(row=4,column=0,sticky=W)
+choice_entered = Entry(window, width=20,bg="white")
+choice_entered.grid(row=4,column=0,sticky=W)
 Button(window, text="SUBMIT CHOICE", width=14, command=choiceClick) .grid(row=6, column=0, sticky=W)
 choice_message = Text(window, width=80, height=1, wrap=WORD, background="white")
 choice_message.grid(row=7, column=0, columnspan=2, sticky=W)
