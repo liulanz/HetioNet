@@ -106,7 +106,7 @@ def readNodes():
 ######################################################################
 
 def readEdges():
-#    edges_tsv_file = open("sample_edges.tsv")
+    # edges_tsv_file = open("sample_edges.tsv")
     edges_tsv_file = open("edges.tsv")
     edges_read_tsv = csv.reader(edges_tsv_file, delimiter = "\t")
     next(edges_read_tsv, None) # skip first row
@@ -154,6 +154,7 @@ def readEdges():
 # Obtain and output this information in a single query.
 
 def queryDisease(diseaseID):
+    
     global window
     query1_message = Text(window, width=100, height=10, wrap=WORD, background="white")
     query1_message.grid(row=16, column=0, columnspan=2, sticky=W)
@@ -163,47 +164,48 @@ def queryDisease(diseaseID):
     
     results = collection.find({'_id': diseaseID}, {'name':1, '->treats': 1, '->palliates': 1, 'associates->': 1, 'downregulates->': 1, 'upregulates->': 1, 'localizes->': 1})
     
-    if not results:
-        query1_message.insert(END, "No record found. Please re-enter.")
-    else:
-        for i in results:
-            res = i
     compound_names=set()
     gene_names=set()
     anatomy_names=set()
 
-    if '->treats' in res:
-        for i in res['->treats']:
-            compound_names.add(i)
+    if not results:
+        query1_message.insert(END, "No record found. Please re-enter.")
+    else:
+        for j in results:
+            res = j
 
-    if '->palliates' in res:
-        for i in res['->palliates']:
-            compound_names.add(i)
+        if '->treats' in res:
+            for i in res['->treats']:
+                compound_names.add(i)
 
-    if 'associates->' in res:
-        for i in res['associates->']:
-            gene_names.add(i)
-       
-    if 'downregulates->' in res:
-        for i in res['downregulates->']:
-            gene_names.add(i)
+        if '->palliates' in res:
+            for i in res['->palliates']:
+                compound_names.add(i)
 
-    if 'upregulates->' in res:
-        for i in res['upregulates->']:
-            gene_names.add(i)
+        if 'associates->' in res:
+            for i in res['associates->']:
+                gene_names.add(i)
+           
+        if 'downregulates->' in res:
+            for i in res['downregulates->']:
+                gene_names.add(i)
 
-    if 'localizes->' in res:
-        for i in res['localizes->']:
-            anatomy_names.add(i)
+        if 'upregulates->' in res:
+            for i in res['upregulates->']:
+                gene_names.add(i)
 
-    query1_result = f"""
-        Disease ID: {diseaseID}
-        Disease Name: {res['name']}
-        Drugs that treat/palliates this disease: {compound_names}
-        Genes that cause cause this disease: {gene_names}
-        This disease occurs at: {anatomy_names}
-    """
-    query1_message.insert(END, query1_result)
+        if 'localizes->' in res:
+            for i in res['localizes->']:
+                anatomy_names.add(i)
+
+        query1_result = f"""
+            Disease ID: {diseaseID}
+            Disease Name: {res['name']}
+            Drugs that treat/palliates this disease: {compound_names}
+            Genes that cause cause this disease: {gene_names}
+            This disease occurs at: {anatomy_names}
+        """
+        query1_message.insert(END, query1_result)
 
     disease = str(res['name']+"\n"+diseaseID)
     ######################################################################
@@ -318,39 +320,38 @@ def queryDisease(diseaseID):
 # (i.e. the missing edges between compound and disease excluding existing drugs). 
 # Obtain and output all drugs in a single query.
 
-def queryCompound(compound):
+def queryCompound(diseaseName):
+    
     global window
     query2_message = Text(window, width=100, height=10, wrap=WORD, background="white")
     query2_message.grid(row=16, column=0, columnspan=2, sticky=W)
     
     query = f"""
-        MATCH (c)-[:upregulates]->(:Gene)<-[:downregulates]-(d:Disease)
-        WHERE ((c:Compound) OR ((c)-[:resembles]->(:Compound))) AND NOT (c)-[:treats]->(d)
-        OPTIONAL MATCH (c)-[:downregulates]->(:Gene)<-[:upregulates]-(d:Disease)
-        WHERE ((c:Compound) OR ((c)-[:resembles]->(:Compound))) AND NOT (c)-[:treats]->(d)
-        RETURN DISTINCT c.name, d.name
+        MATCH (c:Compound)-[:upregulates]->(:Gene)<-[:downregulates]-(d:Disease {{name: "{diseaseName}"}})
+        WHERE NOT (c)-[:treats]->(d)
+        OPTIONAL MATCH (c:Compound)-[:downregulates]->(:Gene)<-[:upregulates]-(d:Disease {{name: "{diseaseName}"}})
+        WHERE NOT (c)-[:treats]->(d)
+        RETURN DISTINCT c.name
     """
 
     results = graph.run(query).data()
     if not results:
         query2_message.insert(END, "No record found. Please re-enter.")
     else:
-        compound_disease_pairs=[]
         compound_names=[]
-        disease_names=[]
 
         for result in results:
-            # avoid adding "None" node to the graph
-            if(str(result['c.name'])!="None"):
-                compound_disease_pairs.append(result['c.name'] + ' - ' + result['d.name'])
+            if 'c.name' in result:
                 compound_names.append(result['c.name'])
-            if(str(result['d.name'])!="None"):
-                disease_names.append(result['d.name'])
-        query2_message.insert(END, 'Compound-Disease pairs:' + '\n') 
-        for pair in compound_disease_pairs:
-            query2_message.insert(END, pair + '\n') 
 
+        query2_message.insert(END, 'Disease name: ' + diseaseName + '\n') 
+        query2_message.insert(END, 'Compound(s) that can treat this disease:' + '\n') 
+        for compound in compound_names:
+            query2_message.insert(END, compound + '\n') 
+            G.add_node(compound)
 
+        pos = nx.spring_layout(G)
+        nx.draw(G,pos,node_size=2000,node_color='#9999FF',alpha=0.8,arrowsize=20, arrows= True,labels={node:node for node in G.nodes()  })
 ######################################################################
 ##################### functions for GUI part #########################
 ######################################################################
@@ -359,13 +360,15 @@ def showGraph():
     plt.show()
 
 def query1(textentry):
+    G.clear()
     disease_id = textentry.get()
     queryDisease(disease_id)
     Button(window, text="VIEW GRAPH", width=10, command=showGraph) .grid(row=13, column=0, sticky=W)
 
 def query2(textentry):
-    compound_name = textentry.get()
-    queryCompound(compound_name)
+    G.clear()
+    disease_name = textentry.get()
+    queryCompound(disease_name)
     Button(window, text="VIEW GRAPH", width=10, command=showGraph) .grid(row=13, column=0, sticky=W)
 
 def choiceClick():
@@ -384,7 +387,7 @@ def choiceClick():
         Button(window, text="SUBMIT", width=6, command=query1_with_arg) .grid(row=12, column=0, sticky=W)    
     elif choice == 'B':    
         choice_message.insert(END, "CHOICE B was entered.")
-        Label(window, text="Please enter a compound name: ", bg="#856ff8", fg="white", width=30, font="none 12 bold") .grid(row=9,column=0, sticky=W)
+        Label(window, text="Please enter a disease name: ", bg="#856ff8", fg="white", width=30, font="none 12 bold") .grid(row=9,column=0, sticky=W)
         textentry = Entry(window, width=20, bg="white")
         textentry.grid(row=10,column=0,sticky=W)
         query2_with_arg = partial(query2, textentry)
