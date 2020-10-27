@@ -38,8 +38,8 @@ G = nx.DiGraph()
 # Mongodb connection to cluster
 cluster = MongoClient("mongodb+srv://mongodb:mongodb@cluster0.vnvto.mongodb.net/<dbname>?retryWrites=true&w=majority")
 db1 = cluster["HetioNet"]
-collection1 = db1["HetioNet"]
-# collection1.delete_many({})    # delete existing data 
+collection = db1["HetioNet"]
+# collection.delete_many({})    # delete existing data 
 
 db = cluster["HetioNet-longdata"]
 collection = db["HetioNet-longdata"]
@@ -83,8 +83,8 @@ def getRelationship(letter):
 
 def readNodes():
     global collection
-    # nodes_tsv_file = open("sample_nodes.tsv")
-    nodes_tsv_file = open("nodes.tsv")
+    nodes_tsv_file = open("sample_nodes.tsv")
+    #nodes_tsv_file = open("nodes.tsv")
     nodes_read_tsv = csv.reader(nodes_tsv_file, delimiter = "\t")
     next(nodes_read_tsv, None) # skip first row
     for row in nodes_read_tsv:
@@ -105,8 +105,8 @@ def readNodes():
 ######################################################################
 
 def readEdges():
-#    edges_tsv_file = open("sample_edges.tsv")
-    edges_tsv_file = open("edges.tsv")
+    edges_tsv_file = open("sample_edges.tsv")
+    #edges_tsv_file = open("edges.tsv")
     edges_read_tsv = csv.reader(edges_tsv_file, delimiter = "\t")
     next(edges_read_tsv, None) # skip first row
     for row in edges_read_tsv:
@@ -393,14 +393,14 @@ def showGraph():
     plt.show()
 
 def query1():
-    global textentry
-    disease_id = textentry.get()
+    global choice_entered
+    disease_id = choice_entered.get()
     queryDisease(disease_id)
     Button(window, text="VIEW GRAPH", width=10, command=showGraph) .grid(row=13, column=0, sticky=W)
 
 def query2():
-    global textentry
-    compound_name = textentry.get()
+    global choice_entered
+    compound_name = choice_entered.get()
     queryCompound(compound_name)
     Button(window, text="VIEW GRAPH", width=10, command=showGraph) .grid(row=13, column=0, sticky=W)
 
@@ -420,7 +420,6 @@ def choiceClick():
     elif choice == 'B':    
         choice_message.insert(END, "CHOICE B was entered.")
         Label(window, text="Please enter a compound name: ", bg="#856ff8", fg="white", width=30, font="none 12 bold") .grid(row=9,column=0, sticky=W)
-       
         textentry = Entry(window, width=20, bg="white")
         textentry.grid(row=10,column=0,sticky=W)
         Button(window, text="SUBMIT", width=6, command=query2) .grid(row=12, column=0, sticky=W)   
@@ -442,8 +441,8 @@ window.title("Big Data Technology Project I by Yiheng & Liulan ")
 window.configure(background="#856ff8")
 
 
-#readNodes()
-#readEdges()
+# readNodes()
+# readEdges()
 
 
 #https://www.youtube.com/watch?v=_lSNIrR1nZU
