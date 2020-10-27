@@ -5,6 +5,7 @@ from pymongo import MongoClient
 import csv
 from tkinter import *
 import networkx as nx
+from functools import partial
 import matplotlib.pyplot as plt
 
 
@@ -155,7 +156,6 @@ def queryDisease(diseaseID):
     global window
     query1_message = Text(window, width=100, height=10, wrap=WORD, background="white")
     query1_message.grid(row=16, column=0, columnspan=2, sticky=W)
-
     ######################################################################
     ########################## Query 1 using Mongodb #####################
     ######################################################################
@@ -352,39 +352,6 @@ def queryCompound(compound):
             query2_message.insert(END, pair + '\n') 
 
 
-        # G.clear()
-
-
-
-        # if(len(compound_names)!=0):
-        #     for compound_name in compound_names:
-        #         G.add_edge((str)(compound_name),disease)
-        # if(len(gene_names)!=0):
-        #     for gene_name in gene_names:
-        #         G.add_edge(disease, (str)(gene_name))
-        # if(len(anatomy_names)!=0):
-        #     for anatomy_name in anatomy_names:
-        #         G.add_edge(disease, (str)(anatomy_name))
-
-        # pos = nx.spring_layout(G)
-
-        # # drawing edges and nodes
-        # nx.draw(G,pos,edge_color='red',width=1,linewidths=1, node_size=2000,node_color='#9999FF',alpha=0.8,arrowsize=20, arrows= True,labels={node:node for node in G.nodes()  })
-        
-
-        # # adding edge label to each edge
-        # if(len(compound_names)!=0):
-        #     for compound_name in compound_names:
-        #         nx.draw_networkx_edge_labels(G,pos,edge_labels={((str)(compound_name), disease):'treats/paliates'},font_color='red')
-        # if(len(gene_names)!=0):
-        #     for gene_name in gene_names:
-        #         nx.draw_networkx_edge_labels(G,pos,edge_labels={(disease, (str)(gene_name)):'associates/downregulates/upregulates'},font_color='red')
-        # if(len(anatomy_names)!=0):
-        #     for anatomy_name in anatomy_names:
-        #         nx.draw_networkx_edge_labels(G,pos,edge_labels={(disease,(str)(anatomy_name)):'localizes'},font_color='red')
-
-
-
 ######################################################################
 ##################### functions for GUI part #########################
 ######################################################################
@@ -392,14 +359,12 @@ def queryCompound(compound):
 def showGraph():
     plt.show()
 
-def query1():
-    global textentry
+def query1(textentry):
     disease_id = textentry.get()
     queryDisease(disease_id)
     Button(window, text="VIEW GRAPH", width=10, command=showGraph) .grid(row=13, column=0, sticky=W)
 
-def query2():
-    global textentry
+def query2(textentry):
     compound_name = textentry.get()
     queryCompound(compound_name)
     Button(window, text="VIEW GRAPH", width=10, command=showGraph) .grid(row=13, column=0, sticky=W)
@@ -416,14 +381,15 @@ def choiceClick():
         Label(window, text="Please enter a disease ID: ", bg="#856ff8", fg="white", width=30,font="none 12 bold") .grid(row=9,column=0, sticky=W)
         textentry = Entry(window, width=20, bg="white")
         textentry.grid(row=10,column=0,sticky=W)
-        Button(window, text="SUBMIT", width=6, command=query1) .grid(row=12, column=0, sticky=W)    
+        query1_with_arg = partial(query1, textentry)
+        Button(window, text="SUBMIT", width=6, command=query1_with_arg) .grid(row=12, column=0, sticky=W)    
     elif choice == 'B':    
         choice_message.insert(END, "CHOICE B was entered.")
         Label(window, text="Please enter a compound name: ", bg="#856ff8", fg="white", width=30, font="none 12 bold") .grid(row=9,column=0, sticky=W)
-       
         textentry = Entry(window, width=20, bg="white")
         textentry.grid(row=10,column=0,sticky=W)
-        Button(window, text="SUBMIT", width=6, command=query2) .grid(row=12, column=0, sticky=W)   
+        query2_with_arg = partial(query2, textentry)
+        Button(window, text="SUBMIT", width=6, command=query2_with_arg) .grid(row=12, column=0, sticky=W)   
     else:
         choice_message.insert(END, "Invalid choice. The choice is either 'A' or 'B'. Please re-enter.")
     
@@ -458,7 +424,7 @@ Button(window, text="SUBMIT CHOICE", width=14, command=choiceClick) .grid(row=6,
 choice_message = Text(window, width=80, height=1, wrap=WORD, background="white")
 choice_message.grid(row=7, column=0, columnspan=2, sticky=W)
 
-
+#textentry = Entry(window, width=20, bg="white")
 # Exit button
 Button(window, text="Exit", width=10, command=closeWindow) .grid(row=42, column=0, sticky=E)
 
