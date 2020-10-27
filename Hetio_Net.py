@@ -152,6 +152,7 @@ def readEdges():
 # what are gene names that cause this disease, 
 # and where this disease occurs? 
 # Obtain and output this information in a single query.
+
 def queryDisease(diseaseID):
     global window
     query1_message = Text(window, width=100, height=10, wrap=WORD, background="white")
@@ -167,8 +168,6 @@ def queryDisease(diseaseID):
     else:
         for i in results:
             res = i
-            # print(f"\t{res}")
-
     compound_names=set()
     gene_names=set()
     anatomy_names=set()
