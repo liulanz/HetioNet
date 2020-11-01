@@ -31,20 +31,20 @@ MESSAGAE = '''
 
 # neo4j database connection
 graph = Graph("bolt://localhost:7687", auth=("neo4j", "password"))
-# graph.delete_all()    # delete existing data 
+#graph.delete_all()    # delete existing data 
 
 # set up graph for output using networkx
 G = nx.DiGraph()
 
 # Mongodb connection to cluster
 cluster = MongoClient("mongodb+srv://mongodb:mongodb@cluster0.vnvto.mongodb.net/<dbname>?retryWrites=true&w=majority")
-db1 = cluster["HetioNet"]
-collection1 = db1["HetioNet"]
+# db1 = cluster["HetioNet"]
+# collection1 = db1["HetioNet"]
 # collection1.delete_many({})    # delete existing data 
 
 db = cluster["HetioNet-longdata"]
 collection = db["HetioNet-longdata"]
-# collection.delete_many({})     # delete existing data 
+#collection.delete_many({})     # delete existing data 
 
 
 ######################################################################
@@ -84,8 +84,8 @@ def getRelationship(letter):
 
 def readNodes():
     global collection
-    # nodes_tsv_file = open("sample_nodes.tsv")
-    nodes_tsv_file = open("nodes.tsv")
+    #nodes_tsv_file = open("sample_nodes.tsv")
+    nodes_tsv_file = open("nodes_test.tsv")
     nodes_read_tsv = csv.reader(nodes_tsv_file, delimiter = "\t")
     next(nodes_read_tsv, None) # skip first row
     for row in nodes_read_tsv:
@@ -106,8 +106,8 @@ def readNodes():
 ######################################################################
 
 def readEdges():
-    # edges_tsv_file = open("sample_edges.tsv")
-    edges_tsv_file = open("edges.tsv")
+    #edges_tsv_file = open("sample_edges.tsv")
+    edges_tsv_file = open("edges_test.tsv")
     edges_read_tsv = csv.reader(edges_tsv_file, delimiter = "\t")
     next(edges_read_tsv, None) # skip first row
     for row in edges_read_tsv:
@@ -130,14 +130,17 @@ def readEdges():
         """
         graph.run(query)
 
-        # store into mongodb
+        #store into mongodb
         source = collection.find_one({'_id':source_ID})
         target = collection.find_one({'_id':target_ID})
 
-        source_relationship = relationship+"->"
-        collection.update_one({'_id':source_ID},{'$push':{source_relationship:target['name']}})
-        target_relationship = "->"+relationship
-        collection.update_one({'_id':target_ID},{'$push':{target_relationship:source['name']}})
+        # only update edges relating to a disease
+        if source_type == "Disease":
+            source_relationship = relationship+"->"
+            collection.update_one({'_id':source_ID},{'$push':{source_relationship:target['name']}})
+        if target_type == "Disease":
+            target_relationship = "->"+relationship
+            collection.update_one({'_id':target_ID},{'$push':{target_relationship:source['name']}})
 
     edges_tsv_file.close()
 
@@ -410,8 +413,8 @@ window.title("Big Data Technology Project I by Yiheng & Liulan ")
 window.configure(background="#856ff8")
 
 
-#readNodes()
-#readEdges()
+readNodes()
+readEdges()
 
 
 #https://www.youtube.com/watch?v=_lSNIrR1nZU
@@ -426,7 +429,6 @@ Button(window, text="SUBMIT CHOICE", width=14, command=choiceClick) .grid(row=6,
 choice_message = Text(window, width=80, height=1, wrap=WORD, background="white")
 choice_message.grid(row=7, column=0, columnspan=2, sticky=W)
 
-#textentry = Entry(window, width=20, bg="white")
 # Exit button
 Button(window, text="Exit", width=10, command=closeWindow) .grid(row=42, column=0, sticky=E)
 
