@@ -21,20 +21,23 @@ Supposed that a drug can treat a disease if the drug or its similar drugs up-reg
 down-regulates/up-regulates the gene in an opposite direction where the disease occurs. Find all drugs that can treat new diseases 
 (i.e. the missing edges between drug and disease). Obtain and output the drug-disease pairs in a single query.
 
+## Requirements
+- py2neo
+- pymongo
+- tkinter
+- networkx
+- matplotlib
+
 
 ## Run
-
-
 - Install Neo4j Desktop
 - Set up Mongodb cluster, add link and password in python code
-
 - start the neo4j service:
 ```
 sudo service neo4j start
 ```
 
 - connect to Neo4j database 
-
 - Run the code
 ```
 python Hetio_Net.py
