@@ -31,7 +31,8 @@ down-regulates/up-regulates the gene in an opposite direction where the disease 
 
 ## Run
 - Install Neo4j Desktop
-- Set up Mongodb cluster, add link and password in python code
+- Set up Mongodb cluster, add link and password 
+- Add paths to nodes and edges tsv files
 - start the neo4j service:
 ```
 sudo service neo4j start
